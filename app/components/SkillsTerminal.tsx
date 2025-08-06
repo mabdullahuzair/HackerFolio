@@ -1,349 +1,501 @@
 "use client"
-import { motion, useInView, AnimatePresence } from "framer-motion"
-import { useRef, useState } from "react"
-import { ChevronRight, Terminal, Code, Database, Settings, Layers, X } from "lucide-react"
 
-const skillsData = {
-  "mern-stack": {
-    title: "MERN Stack",
-    icon: <Layers className="w-5 h-5" />,
-    color: "text-green-400",
-    subcategories: {
-      frontend: {
-        title: "Frontend",
-        skills: [
-          { name: "React.js", level: 85, description: "Component-based UI development" },
-          { name: "Tailwind CSS", level: 90, description: "Utility-first CSS framework" },
-          { name: "HTML5/CSS3", level: 95, description: "Modern web standards" },
-          { name: "JavaScript", level: 88, description: "ES6+ and modern JS features" },
-          { name: "Framer Motion", level: 75, description: "React animation library" },
-        ],
-      },
-      backend: {
-        title: "Backend",
-        skills: [
-          { name: "Node.js", level: 80, description: "Server-side JavaScript runtime" },
-          { name: "Express.js", level: 78, description: "Web application framework" },
-          { name: "REST APIs", level: 85, description: "RESTful web services" },
-          { name: "JWT / OAuth", level: 70, description: "Authentication & authorization" },
-          { name: "WebSocket", level: 65, description: "Real-time communication" },
-        ],
-      },
-    },
-  },
-  languages: {
-    title: "Programming Languages",
-    icon: <Code className="w-5 h-5" />,
-    color: "text-cyan-400",
-    skills: [
-      { name: "JavaScript", level: 88, description: "Primary language for web development" },
-      { name: "Python", level: 70, description: "Data science and backend development" },
-      { name: "C/C++", level: 65, description: "System programming and algorithms" },
-      { name: "Bash", level: 60, description: "Shell scripting and automation" },
-      { name: "Vibe Coding", level: 95, description: "Writing code with style and intuition" },
-    ],
-  },
-  databases: {
-    title: "Databases",
-    icon: <Database className="w-5 h-5" />,
-    color: "text-purple-400",
-    skills: [
-      { name: "MongoDB", level: 80, description: "NoSQL document database" },
-      { name: "Firestore", level: 70, description: "Cloud-native NoSQL database" },
-      { name: "MySQL", level: 75, description: "Relational database management" },
-    ],
-  },
-  tools: {
-    title: "Tools & Platforms",
-    icon: <Settings className="w-5 h-5" />,
-    color: "text-yellow-400",
-    skills: [
-      { name: "Git & GitHub", level: 90, description: "Version control and collaboration" },
-      { name: "Postman", level: 85, description: "API development and testing" },
-      { name: "Figma", level: 70, description: "UI/UX design and prototyping" },
-      { name: "Netlify / Vercel", level: 85, description: "Modern deployment platforms" },
-      { name: "Vibe Coding", level: 95, description: "Intuitive and aesthetic code writing" },
-    ],
-  },
+import type React from "react"
+
+import { useState, useEffect, useRef, useMemo } from "react"
+import { motion } from "framer-motion"
+
+interface Skill {
+  name: string
+  level: number
+  category: string
+  description: string
+  icon: string
 }
 
+const skills: Skill[] = [
+  // Programming Languages
+  {
+    name: "JavaScript",
+    level: 95,
+    category: "Programming Languages",
+    description: "Expert in ES6+, async/await, and modern JS features",
+    icon: "🟨",
+  },
+  {
+    name: "TypeScript",
+    level: 90,
+    category: "Programming Languages",
+    description: "Strong typing, interfaces, and advanced TS patterns",
+    icon: "🔷",
+  },
+  {
+    name: "Python",
+    level: 85,
+    category: "Programming Languages",
+    description: "Backend development, automation, and data processing",
+    icon: "🐍",
+  },
+  {
+    name: "Java",
+    level: 75,
+    category: "Programming Languages",
+    description: "Object-oriented programming and enterprise applications",
+    icon: "☕",
+  },
+  {
+    name: "C++",
+    level: 70,
+    category: "Programming Languages",
+    description: "System programming and competitive programming",
+    icon: "⚡",
+  },
+  {
+    name: "Vibe Coding",
+    level: 95,
+    category: "Programming Languages",
+    description: "Intuitive coding with perfect flow and rhythm",
+    icon: "🎵",
+  },
+
+  // Frontend Technologies
+  {
+    name: "React",
+    level: 95,
+    category: "Frontend",
+    description: "Hooks, Context API, and advanced React patterns",
+    icon: "⚛️",
+  },
+  { name: "Next.js", level: 90, category: "Frontend", description: "SSR, SSG, API routes, and App Router", icon: "▲" },
+  {
+    name: "Vue.js",
+    level: 80,
+    category: "Frontend",
+    description: "Composition API, Vuex, and component architecture",
+    icon: "💚",
+  },
+  {
+    name: "HTML5",
+    level: 95,
+    category: "Frontend",
+    description: "Semantic markup, accessibility, and modern HTML features",
+    icon: "🌐",
+  },
+  {
+    name: "CSS3",
+    level: 90,
+    category: "Frontend",
+    description: "Flexbox, Grid, animations, and responsive design",
+    icon: "🎨",
+  },
+  {
+    name: "Tailwind CSS",
+    level: 95,
+    category: "Frontend",
+    description: "Utility-first CSS framework and custom configurations",
+    icon: "💨",
+  },
+  {
+    name: "SCSS/Sass",
+    level: 85,
+    category: "Frontend",
+    description: "Advanced CSS preprocessing and mixins",
+    icon: "💄",
+  },
+
+  // Backend Technologies
+  {
+    name: "Node.js",
+    level: 90,
+    category: "Backend",
+    description: "Server-side JavaScript, Express, and API development",
+    icon: "🟢",
+  },
+  {
+    name: "Express.js",
+    level: 88,
+    category: "Backend",
+    description: "RESTful APIs, middleware, and server architecture",
+    icon: "🚂",
+  },
+  { name: "FastAPI", level: 80, category: "Backend", description: "High-performance Python web framework", icon: "⚡" },
+  { name: "Django", level: 75, category: "Backend", description: "Full-featured Python web framework", icon: "🎸" },
+  { name: "GraphQL", level: 70, category: "Backend", description: "Query language and runtime for APIs", icon: "🔗" },
+
+  // Databases
+  {
+    name: "MongoDB",
+    level: 85,
+    category: "Database",
+    description: "NoSQL database design and aggregation pipelines",
+    icon: "🍃",
+  },
+  {
+    name: "PostgreSQL",
+    level: 80,
+    category: "Database",
+    description: "Relational database design and complex queries",
+    icon: "🐘",
+  },
+  {
+    name: "MySQL",
+    level: 75,
+    category: "Database",
+    description: "Database optimization and stored procedures",
+    icon: "🐬",
+  },
+  { name: "Redis", level: 70, category: "Database", description: "Caching, session storage, and pub/sub", icon: "🔴" },
+
+  // Tools & Platforms
+  {
+    name: "Git",
+    level: 90,
+    category: "Tools & Platforms",
+    description: "Version control, branching strategies, and collaboration",
+    icon: "📚",
+  },
+  {
+    name: "AWS",
+    level: 75,
+    category: "Tools & Platforms",
+    description: "Cloud services, EC2, S3, and Lambda",
+    icon: "☁️",
+  },
+  {
+    name: "Vercel",
+    level: 85,
+    category: "Tools & Platforms",
+    description: "Deployment, serverless functions, and edge computing",
+    icon: "▲",
+  },
+  {
+    name: "Figma",
+    level: 80,
+    category: "Tools & Platforms",
+    description: "UI/UX design, prototyping, and design systems",
+    icon: "🎨",
+  },
+  {
+    name: "Postman",
+    level: 85,
+    category: "Tools & Platforms",
+    description: "API testing, documentation, and automation",
+    icon: "📮",
+  },
+  {
+    name: "Vibe Coding",
+    level: 95,
+    category: "Tools & Platforms",
+    description: "Creating harmonious code with perfect developer flow",
+    icon: "🎵",
+  },
+]
+
 export default function SkillsTerminal() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true })
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false)
-  const [currentView, setCurrentView] = useState<string | null>(null)
+  const [input, setInput] = useState("")
+  const [output, setOutput] = useState<string[]>([])
+  const [currentCategory, setCurrentCategory] = useState<string | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const terminalRef = useRef<HTMLDivElement>(null)
 
-  const renderSkillCard = (skill: any, index: number) => (
-    <motion.div
-      key={skill.name}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="bg-black/80 border border-green-400/50 rounded-lg p-4 hover:border-green-400 transition-colors group backdrop-blur-sm"
-      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}
-    >
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="text-green-400 font-bold">{skill.name}</h4>
-        <span className="text-cyan-400 text-sm font-bold">{skill.level}%</span>
-      </div>
-      <p className="text-gray-300 text-sm mb-3">{skill.description}</p>
-      <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-green-400 to-cyan-400 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${skill.level}%` }}
-          transition={{ duration: 1, delay: index * 0.1 }}
-        />
-      </div>
-    </motion.div>
-  )
+  // Memoized categories and skills for better performance
+  const categories = useMemo(() => {
+    return Array.from(new Set(skills.map((skill) => skill.category)))
+  }, [])
 
-  const renderCurrentView = () => {
-    if (!currentView) {
-      return (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          {Object.entries(skillsData).map(([key, category], index) => (
-            <motion.button
-              key={key}
-              onClick={() => setCurrentView(key)}
-              className="bg-black/80 border border-gray-600 rounded-lg p-6 text-left hover:border-green-400 transition-colors group cursor-pointer backdrop-blur-sm"
-              whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(0, 255, 0, 0.2)" }}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="flex items-center mb-3">
-                <div className={`${category.color} mr-3`}>{category.icon}</div>
-                <h3 className={`text-lg font-bold ${category.color}`}>{category.title}</h3>
-                <ChevronRight className="ml-auto text-gray-400 group-hover:text-green-400 transition-colors" />
-              </div>
-              <div className="text-gray-300 text-sm">
-                {category.subcategories
-                  ? `${Object.keys(category.subcategories).length} subcategories`
-                  : `${category.skills?.length || 0} skills`}
-              </div>
-            </motion.button>
-          ))}
-        </motion.div>
-      )
+  const skillsByCategory = useMemo(() => {
+    return categories.reduce(
+      (acc, category) => {
+        acc[category] = skills.filter((skill) => skill.category === category)
+        return acc
+      },
+      {} as Record<string, Skill[]>,
+    )
+  }, [categories])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.3 },
+    )
+
+    const skillsSection = document.getElementById("skills")
+    if (skillsSection) {
+      observer.observe(skillsSection)
     }
 
-    // Handle subcategory views
-    if (currentView.includes("-")) {
-      const [categoryKey, subcategoryKey] = currentView.split("-")
-      const category = skillsData[categoryKey as keyof typeof skillsData]
-      const subcategory = category?.subcategories?.[subcategoryKey as keyof any]
+    return () => observer.disconnect()
+  }, [])
 
-      if (subcategory) {
-        return (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center mb-6">
-              <button
-                onClick={() => setCurrentView(categoryKey)}
-                className="text-green-400 hover:text-cyan-400 mr-4 cursor-pointer"
-              >
-                ← Back
-              </button>
-              <div className={`${category.color} mr-3`}>{category.icon}</div>
-              <h3 className={`text-2xl font-bold ${category.color}`}>
-                {category.title} → {subcategory.title}
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {subcategory.skills.map((skill: any, index: number) => renderSkillCard(skill, index))}
-            </div>
-          </motion.div>
+  useEffect(() => {
+    if (isVisible && output.length === 0) {
+      setOutput([
+        "🚀 Skills Terminal Initialized",
+        "Type 'help' to see available commands",
+        "Type 'skills' to view all skills",
+        "Type 'categories' to see skill categories",
+        "",
+      ])
+    }
+  }, [isVisible, output.length])
+
+  // Optimized command execution
+  const executeCommand = (cmd: string) => {
+    const command = cmd.trim().toLowerCase()
+    const newOutput = [...output, `$ ${cmd}`]
+
+    switch (command) {
+      case "help":
+        newOutput.push(
+          "Available commands:",
+          "• skills - Show all skills",
+          "• categories - List skill categories",
+          "• frontend - Show frontend skills",
+          "• backend - Show backend skills",
+          "• database - Show database skills",
+          "• tools - Show tools & platforms",
+          "• programming - Show programming languages",
+          "• clear - Clear terminal",
+          "",
         )
-      }
+        break
+
+      case "skills":
+        newOutput.push("📊 All Skills Overview:", "")
+        categories.forEach((category) => {
+          newOutput.push(`${category.toUpperCase()}:`)
+          skillsByCategory[category].forEach((skill) => {
+            const progressBar = "█".repeat(Math.floor(skill.level / 10)) + "░".repeat(10 - Math.floor(skill.level / 10))
+            newOutput.push(`  ${skill.icon} ${skill.name}: ${progressBar} ${skill.level}%`)
+          })
+          newOutput.push("")
+        })
+        break
+
+      case "categories":
+        newOutput.push("📂 Skill Categories:", "")
+        categories.forEach((category, index) => {
+          const skillCount = skillsByCategory[category].length
+          newOutput.push(`${index + 1}. ${category} (${skillCount} skills)`)
+        })
+        newOutput.push("")
+        break
+
+      case "frontend":
+        showCategorySkills("Frontend", newOutput)
+        break
+
+      case "backend":
+        showCategorySkills("Backend", newOutput)
+        break
+
+      case "database":
+        showCategorySkills("Database", newOutput)
+        break
+
+      case "tools":
+        showCategorySkills("Tools & Platforms", newOutput)
+        break
+
+      case "programming":
+        showCategorySkills("Programming Languages", newOutput)
+        break
+
+      case "clear":
+        setOutput([])
+        setInput("")
+        return
+
+      default:
+        newOutput.push(`Command not found: ${cmd}`)
+        newOutput.push("Type 'help' for available commands")
+        newOutput.push("")
     }
 
-    // Handle category views
-    const category = skillsData[currentView as keyof typeof skillsData]
-    if (!category) return null
-
-    if (category.subcategories) {
-      return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => setCurrentView(null)}
-              className="text-green-400 hover:text-cyan-400 mr-4 cursor-pointer"
-            >
-              ← Back
-            </button>
-            <div className={`${category.color} mr-3`}>{category.icon}</div>
-            <h3 className={`text-2xl font-bold ${category.color}`}>{category.title}</h3>
-          </div>
-          <div className="space-y-6">
-            {Object.entries(category.subcategories).map(([subKey, subcategory], index) => (
-              <motion.div
-                key={subKey}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.2 }}
-                className="border border-gray-700 rounded-lg p-4 bg-black/60 backdrop-blur-sm"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-xl font-bold text-cyan-400">{subcategory.title}</h4>
-                  <motion.button
-                    onClick={() => setCurrentView(`${currentView}-${subKey}`)}
-                    className="text-green-400 hover:text-cyan-400 transition-colors cursor-pointer"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <ChevronRight />
-                  </motion.button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {subcategory.skills
-                    .slice(0, 4)
-                    .map((skill: any, skillIndex: number) => renderSkillCard(skill, skillIndex))}
-                </div>
-                {subcategory.skills.length > 4 && (
-                  <motion.button
-                    onClick={() => setCurrentView(`${currentView}-${subKey}`)}
-                    className="mt-4 text-green-400 hover:text-cyan-400 transition-colors text-sm cursor-pointer"
-                    whileHover={{ x: 5 }}
-                  >
-                    View all {subcategory.skills.length} skills →
-                  </motion.button>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      )
-    }
-
-    if (category.skills) {
-      return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => setCurrentView(null)}
-              className="text-green-400 hover:text-cyan-400 mr-4 cursor-pointer"
-            >
-              ← Back
-            </button>
-            <div className={`${category.color} mr-3`}>{category.icon}</div>
-            <h3 className={`text-2xl font-bold ${category.color}`}>{category.title}</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {category.skills.map((skill, index) => renderSkillCard(skill, index))}
-          </div>
-        </motion.div>
-      )
-    }
-
-    return null
+    setOutput(newOutput)
+    setInput("")
   }
 
+  const showCategorySkills = (category: string, outputArray: string[]) => {
+    const categorySkills = skillsByCategory[category]
+    if (categorySkills) {
+      outputArray.push(`💻 ${category} Skills:`, "")
+      categorySkills.forEach((skill) => {
+        const progressBar = "█".repeat(Math.floor(skill.level / 10)) + "░".repeat(10 - Math.floor(skill.level / 10))
+        outputArray.push(`${skill.icon} ${skill.name}`)
+        outputArray.push(`   Level: ${progressBar} ${skill.level}%`)
+        outputArray.push(`   ${skill.description}`)
+        outputArray.push("")
+      })
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      if (input.trim()) {
+        executeCommand(input)
+      }
+    }
+  }
+
+  // Auto-scroll to bottom with performance optimization
+  useEffect(() => {
+    if (terminalRef.current) {
+      const scrollToBottom = () => {
+        terminalRef.current?.scrollTo({
+          top: terminalRef.current.scrollHeight,
+          behavior: "smooth",
+        })
+      }
+
+      requestAnimationFrame(scrollToBottom)
+    }
+  }, [output])
+
   return (
-    <section id="skills" className="min-h-screen py-20 relative">
-      <div className="container mx-auto px-4">
+    <section id="skills" className="min-h-screen flex items-center justify-center relative overflow-hidden py-20">
+      {/* Dark overlay for better text visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 z-5"></div>
+
+      <div className="container mx-auto px-4 z-10 relative">
         <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <motion.h2
-            className="text-4xl md:text-6xl font-bold mb-4"
-            animate={{
-              textShadow: ["0 0 10px #ff00ff", "0 0 20px #ff00ff", "0 0 10px #ff00ff"],
+          <h2
+            className="text-4xl sm:text-5xl md:text-6xl font-black mb-6"
+            style={{
+              textShadow: "0 0 20px rgba(255, 0, 255, 0.8), 0 4px 8px rgba(0, 0, 0, 0.8)",
+              fontWeight: 900,
             }}
-            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
-            $ ./skills --explore
-          </motion.h2>
-          <div className="text-xl text-purple-400">Interactive Skill Explorer</div>
+            TECHNICAL SKILLS
+          </h2>
+          <p
+            className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto"
+            style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.8)" }}
+          >
+            Explore my technical expertise through an interactive terminal interface
+          </p>
         </motion.div>
 
-        <div className="max-w-6xl mx-auto">
-          {!isTerminalOpen ? (
-            // Terminal Preview (Clickable)
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              onClick={() => setIsTerminalOpen(true)}
-              className="bg-black/90 border border-green-400/50 rounded-lg overflow-hidden cursor-pointer hover:border-green-400 transition-colors group"
-              whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(0, 255, 0, 0.3)" }}
-            >
-              <div className="flex items-center bg-gray-900 px-4 py-3 border-b border-gray-700">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+          className="max-w-4xl mx-auto"
+        >
+          <div
+            className="bg-black/90 border border-purple-400/50 rounded-lg font-mono backdrop-blur-md"
+            style={{
+              boxShadow: "0 0 30px rgba(255, 0, 255, 0.2)",
+              willChange: "auto",
+            }}
+          >
+            {/* Terminal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-purple-400/30">
+              <div className="flex items-center space-x-2">
                 <div className="flex space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 </div>
-                <div className="ml-4 flex items-center text-gray-400 text-sm">
-                  <Terminal className="w-4 h-4 mr-2" />
-                  skills-terminal
-                </div>
+                <div className="ml-4 text-sm text-gray-400">skills-terminal</div>
               </div>
+              <div className="text-sm text-purple-400">Interactive Skills Explorer</div>
+            </div>
 
-              <div className="p-8 text-center">
-                <motion.div
-                  className="text-6xl mb-4"
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  💻
-                </motion.div>
-                <div className="text-green-400 text-xl font-bold mb-2">Click to Open Terminal</div>
-                <div className="text-gray-400">Explore my skills interactively</div>
-                <motion.div
-                  className="mt-4 text-cyan-400 text-sm"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  $ skills --interactive
-                </motion.div>
-              </div>
-            </motion.div>
-          ) : (
-            // Full Terminal Interface
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-black/95 border border-green-400/50 rounded-lg overflow-hidden backdrop-blur-sm"
+            {/* Terminal Content */}
+            <div
+              ref={terminalRef}
+              className="h-96 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent text-sm"
+              style={{ scrollbarWidth: "thin" }}
             >
-              <div className="flex items-center justify-between bg-gray-900 px-4 py-3 border-b border-gray-700">
-                <div className="flex items-center">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  </div>
-                  <div className="ml-4 flex items-center text-gray-400 text-sm">
-                    <Terminal className="w-4 h-4 mr-2" />
-                    skills-terminal
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setIsTerminalOpen(false)
-                    setCurrentView(null)
-                  }}
-                  className="text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+              {output.map((line, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    line.startsWith("$")
+                      ? "text-purple-400"
+                      : line.includes("█")
+                        ? "text-green-400 font-mono"
+                        : line.includes("•")
+                          ? "text-cyan-400"
+                          : line.includes(":") && line.includes("%")
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                  }`}
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="p-6">
-                <div className="mb-4 text-green-400 font-mono text-sm">
-                  $ skills --list
-                  <br />
-                  Loading skill categories...
+                  {line}
                 </div>
-                <AnimatePresence mode="wait">{renderCurrentView()}</AnimatePresence>
+              ))}
+
+              {/* Input Line */}
+              <div className="flex items-center mt-2">
+                <span className="text-purple-400 mr-2">$</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="bg-transparent text-white outline-none flex-1 caret-purple-400"
+                  style={{ caretColor: "#a855f7" }}
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="Type a command..."
+                />
+              </div>
+            </div>
+
+            {/* Terminal Footer */}
+            <div className="p-2 border-t border-purple-400/30 text-xs text-gray-400 text-center">
+              Interactive Skills Terminal • Type 'help' for commands
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Skills Grid Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="mt-16 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+        >
+          {skills.slice(0, 12).map((skill, index) => (
+            <motion.div
+              key={skill.name}
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-black/60 border border-purple-400/30 rounded-lg p-4 text-center backdrop-blur-sm hover:border-purple-400/60 transition-colors"
+              style={{ willChange: "border-color" }}
+            >
+              <div className="text-2xl mb-2">{skill.icon}</div>
+              <div className="text-purple-400 font-bold text-sm mb-1">{skill.name}</div>
+              <div className="text-xs text-gray-400">{skill.level}%</div>
+              <div className="w-full bg-gray-700 rounded-full h-1 mt-2">
+                <motion.div
+                  className="bg-purple-400 h-1 rounded-full"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${skill.level}%` }}
+                  transition={{ duration: 1, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                />
               </div>
             </motion.div>
-          )}
-        </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )

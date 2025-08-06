@@ -2,297 +2,505 @@
 
 import type React from "react"
 
-import { motion } from "framer-motion"
-import { useState, useEffect, useRef } from "react"
-import { X, Terminal } from "lucide-react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import type { JSX } from "react/jsx-runtime" // Import JSX from react/jsx-runtime
+
+interface Command {
+  command: string
+  output: string | JSX.Element
+  type?: "success" | "error" | "info"
+}
 
 interface HeroTerminalProps {
   onClose: () => void
 }
 
-const commands = ["help", "about", "skills", "projects", "contact", "experience", "education", "clear", "exit"]
-
 export default function HeroTerminal({ onClose }: HeroTerminalProps) {
   const [input, setInput] = useState("")
-  const [history, setHistory] = useState<string[]>([
-    "Welcome to Abdullah's Interactive Portfolio Terminal v2.0",
-    "Type 'help' to see available commands",
-    "Use 'about', 'skills', 'projects', 'contact' to navigate",
-    "$ ",
-  ])
+  const [history, setHistory] = useState<Command[]>([])
+  const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
   const [suggestions, setSuggestions] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isClosingTerminal, setIsClosingTerminal] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const terminalRef = useRef<HTMLDivElement>(null)
+  const focusAttempts = useRef(0)
 
-  useEffect(() => {
-    if (input) {
-      const filtered = commands.filter((cmd) => cmd.toLowerCase().includes(input.toLowerCase())).slice(0, 4)
-      setSuggestions(filtered)
-    } else {
-      setSuggestions(["help", "about", "skills", "projects"])
-    }
-  }, [input])
+  // Memoized commands for better performance
+  const commands = useMemo(
+    () => ({
+      help: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Available Commands:</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-green-400">about</span> - Learn about me
+              </div>
+              <div>
+                <span className="text-green-400">skills</span> - View my skills
+              </div>
+              <div>
+                <span className="text-green-400">projects</span> - See my work
+              </div>
+              <div>
+                <span className="text-green-400">contact</span> - Get in touch
+              </div>
+              <div>
+                <span className="text-green-400">experience</span> - Work history
+              </div>
+              <div>
+                <span className="text-green-400">education</span> - Academic background
+              </div>
+              <div>
+                <span className="text-green-400">whoami</span> - Basic info
+              </div>
+              <div>
+                <span className="text-green-400">clear</span> - Clear terminal
+              </div>
+              <div>
+                <span className="text-green-400">exit</span> - Close terminal
+              </div>
+            </div>
+          </div>
+        ),
+        type: "info" as const,
+      },
+      about: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">About Muhammad Abdullah Uzair</div>
+            <div className="text-white">🚀 Passionate Full-Stack Developer with 1+ years of experience</div>
+            <div className="text-white">💻 Specialized in React, Node.js, Python, and modern web technologies</div>
+            <div className="text-white">
+              🎯 Currently focused on building scalable web applications and learning new technologies
+            </div>
+            <div className="text-white">📍 Based in Lahore, Pakistan 🇵🇰</div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      skills: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Technical Skills</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              <div className="text-white">
+                <span className="text-green-400">Frontend:</span> React, Next.js, TypeScript, Tailwind CSS
+              </div>
+              <div className="text-white">
+                <span className="text-green-400">Backend:</span> Node.js, Express, Python, FastAPI
+              </div>
+              <div className="text-white">
+                <span className="text-green-400">Database:</span> MongoDB, PostgreSQL, Redis
+              </div>
+              <div className="text-white">
+                <span className="text-green-400">Tools:</span> Git, AWS, Vercel, Figma
+              </div>
+            </div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      projects: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Featured Projects</div>
+            <div className="space-y-3 text-sm">
+              <div className="border-l-2 border-green-400 pl-3">
+                <div className="text-green-400 font-semibold">MacroMate - Nutrition Tracker</div>
+                <div className="text-white">Full-stack web app for tracking nutrition and fitness goals</div>
+                <div className="text-gray-400">React • Node.js • MongoDB • Chart.js</div>
+              </div>
+              <div className="border-l-2 border-cyan-400 pl-3">
+                <div className="text-cyan-400 font-semibold">TaskFlow - Project Management</div>
+                <div className="text-white">Collaborative project management platform</div>
+                <div className="text-gray-400">Next.js • TypeScript • PostgreSQL • Prisma</div>
+              </div>
+              <div className="border-l-2 border-yellow-400 pl-3">
+                <div className="text-yellow-400 font-semibold">WeatherWise - Weather App</div>
+                <div className="text-white">Real-time weather application with forecasting</div>
+                <div className="text-gray-400">React • OpenWeather API • Tailwind CSS</div>
+              </div>
+            </div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      contact: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Get In Touch</div>
+            <div className="space-y-1 text-sm">
+              <div className="text-white">
+                📧 <span className="text-green-400">Email:</span> abdullah.uzair@example.com
+              </div>
+              <div className="text-white">
+                💼 <span className="text-green-400">LinkedIn:</span> /in/abdullah-uzair
+              </div>
+              <div className="text-white">
+                🐙 <span className="text-green-400">GitHub:</span> /mabdullahuzair
+              </div>
+              <div className="text-white">
+                🌐 <span className="text-green-400">Portfolio:</span> abdullah-portfolio.dev
+              </div>
+              <div className="text-white">
+                📱 <span className="text-green-400">Phone:</span> +92 XXX XXXXXXX
+              </div>
+            </div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      experience: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Work Experience</div>
+            <div className="space-y-3 text-sm">
+              <div className="border-l-2 border-green-400 pl-3">
+                <div className="text-green-400 font-semibold">Full-Stack Developer</div>
+                <div className="text-gray-400">Tech Solutions Inc. • 2023 - Present</div>
+                <div className="text-white">Developing scalable web applications using React and Node.js</div>
+              </div>
+              <div className="border-l-2 border-cyan-400 pl-3">
+                <div className="text-cyan-400 font-semibold">Frontend Developer Intern</div>
+                <div className="text-gray-400">Digital Agency • 2022 - 2023</div>
+                <div className="text-white">Built responsive websites and improved user experience</div>
+              </div>
+            </div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      education: {
+        output: (
+          <div className="space-y-2">
+            <div className="text-cyan-400 font-bold">Education</div>
+            <div className="space-y-2 text-sm">
+              <div className="border-l-2 border-green-400 pl-3">
+                <div className="text-green-400 font-semibold">Bachelor of Computer Science</div>
+                <div className="text-gray-400">University of Punjab • 2020 - 2024</div>
+                <div className="text-white">Focus on Software Engineering and Web Development</div>
+              </div>
+            </div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      whoami: {
+        output: (
+          <div className="space-y-1">
+            <div className="text-white">Muhammad Abdullah Uzair</div>
+            <div className="text-green-400">Full-Stack Developer</div>
+            <div className="text-cyan-400">Lahore, Pakistan 🇵🇰</div>
+            <div className="text-yellow-400">Available for opportunities</div>
+          </div>
+        ),
+        type: "success" as const,
+      },
+      clear: {
+        output: "",
+        type: "success" as const,
+      },
+      exit: {
+        output: "Goodbye! 👋",
+        type: "success" as const,
+      },
+    }),
+    [],
+  )
 
-  useEffect(() => {
-    // Multiple attempts to ensure cursor appears
-    const focusInput = () => {
-      if (inputRef.current) {
+  const availableCommands = Object.keys(commands)
+
+  // Optimized focus function with multiple attempts
+  const focusInput = useCallback(() => {
+    const attemptFocus = () => {
+      if (inputRef.current && focusAttempts.current < 5) {
+        focusAttempts.current++
         inputRef.current.focus()
-        inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length)
+        inputRef.current.click()
 
-        // Force cursor to appear by temporarily changing the input
-        const originalValue = inputRef.current.value
-        inputRef.current.value = originalValue + " "
-        inputRef.current.value = originalValue
-        inputRef.current.focus()
+        // Check if focus was successful
+        if (document.activeElement !== inputRef.current) {
+          requestAnimationFrame(attemptFocus)
+        } else {
+          focusAttempts.current = 0
+        }
       }
     }
 
-    // Try multiple times with different delays
-    const timers = [50, 100, 200, 300].map((delay) => setTimeout(focusInput, delay))
-
-    // Also try on next animation frame
-    const rafId = requestAnimationFrame(focusInput)
-
-    return () => {
-      timers.forEach(clearTimeout)
-      cancelAnimationFrame(rafId)
-    }
+    // Multiple focus attempts with different timing
+    setTimeout(attemptFocus, 100)
+    setTimeout(attemptFocus, 200)
+    setTimeout(attemptFocus, 300)
   }, [])
 
-  // Force focus when clicking anywhere in the terminal
-  const handleTerminalClick = () => {
-    if (inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length)
-    }
-  }
+  useEffect(() => {
+    focusInput()
+  }, [focusInput])
 
-  const executeCommand = (cmd: string) => {
-    const trimmedCmd = cmd.trim().toLowerCase()
-    setHistory((prev) => [...prev, `$ ${cmd}`])
+  // Optimized suggestion filtering
+  const updateSuggestions = useCallback(
+    (value: string) => {
+      if (value.trim()) {
+        const filtered = availableCommands.filter((cmd) => cmd.toLowerCase().startsWith(value.toLowerCase()))
+        setSuggestions(filtered)
+        setShowSuggestions(filtered.length > 0 && filtered[0] !== value)
+      } else {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    },
+    [availableCommands],
+  )
 
-    switch (trimmedCmd) {
-      case "help":
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value
+      setInput(value)
+      updateSuggestions(value)
+      setHistoryIndex(-1)
+    },
+    [updateSuggestions],
+  )
+
+  const executeCommand = useCallback(
+    (cmd: string) => {
+      const trimmedCmd = cmd.trim().toLowerCase()
+
+      if (trimmedCmd === "clear") {
+        setHistory([])
+        setInput("")
+        return
+      }
+
+      if (trimmedCmd === "exit") {
+        setIsClosingTerminal(true)
+        setHistory((prev) => [...prev, { command: cmd, output: commands.exit.output, type: commands.exit.type }])
+
+        setTimeout(() => {
+          onClose()
+          // Enhanced cross-component communication
+          window.dispatchEvent(
+            new CustomEvent("terminalClosed", {
+              detail: { timestamp: Date.now() },
+            }),
+          )
+        }, 1000)
+        return
+      }
+
+      const command = commands[trimmedCmd as keyof typeof commands]
+
+      if (command) {
+        setHistory((prev) => [...prev, { command: cmd, output: command.output, type: command.type }])
+      } else {
         setHistory((prev) => [
           ...prev,
-          "Available commands:",
-          "  about      - Learn about Abdullah",
-          "  skills     - View technical skills",
-          "  projects   - Browse portfolio projects",
-          "  experience - View work experience",
-          "  education  - View educational background",
-          "  contact    - Get contact information",
-          "  clear      - Clear terminal",
-          "  exit       - Close terminal",
-          "",
+          {
+            command: cmd,
+            output: `Command not found: ${cmd}. Type 'help' for available commands.`,
+            type: "error",
+          },
         ])
-        break
-
-      case "about":
-        setHistory((prev) => [...prev, "Loading about section...", "Navigating to /about", ""])
-        setTimeout(() => {
-          document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "skills":
-        setHistory((prev) => [...prev, "Loading skills terminal...", "Navigating to /skills", ""])
-        setTimeout(() => {
-          document.getElementById("skills")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "projects":
-        setHistory((prev) => [...prev, "Loading project showcase...", "Navigating to /projects", ""])
-        setTimeout(() => {
-          document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "experience":
-        setHistory((prev) => [...prev, "Loading work experience...", "Navigating to /experience", ""])
-        setTimeout(() => {
-          document.getElementById("experience")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "education":
-        setHistory((prev) => [...prev, "Loading education details...", "Navigating to /about", ""])
-        setTimeout(() => {
-          document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "contact":
-        setHistory((prev) => [...prev, "Opening contact terminal...", "Navigating to /contact", ""])
-        setTimeout(() => {
-          document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
-          onClose()
-        }, 1000)
-        break
-
-      case "clear":
-        setHistory(["$ "])
-        break
-
-      case "exit":
-        setHistory((prev) => [...prev, "Closing terminal...", "Goodbye! 👋"])
-        setTimeout(() => {
-          onClose()
-        }, 800)
-        break
-
-      default:
-        setHistory((prev) => [...prev, `Command not found: ${cmd}`, "Type 'help' for available commands", ""])
-    }
-
-    setInput("")
-
-    // Refocus input after command execution
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus()
       }
-    }, 100)
-  }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && input.trim()) {
-      executeCommand(input)
-    } else if (e.key === "Escape") {
-      onClose()
+      setCommandHistory((prev) => [cmd, ...prev.slice(0, 49)]) // Keep last 50 commands
+      setInput("")
+      setSuggestions([])
+      setShowSuggestions(false)
+    },
+    [commands, onClose],
+  )
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault()
+        if (input.trim()) {
+          executeCommand(input)
+        }
+      } else if (e.key === "Tab") {
+        e.preventDefault()
+        if (suggestions.length > 0) {
+          setInput(suggestions[0])
+          setSuggestions([])
+          setShowSuggestions(false)
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        if (historyIndex < commandHistory.length - 1) {
+          const newIndex = historyIndex + 1
+          setHistoryIndex(newIndex)
+          setInput(commandHistory[newIndex])
+        }
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault()
+        if (historyIndex > 0) {
+          const newIndex = historyIndex - 1
+          setHistoryIndex(newIndex)
+          setInput(commandHistory[newIndex])
+        } else if (historyIndex === 0) {
+          setHistoryIndex(-1)
+          setInput("")
+        }
+      } else if (e.key === "Escape") {
+        onClose()
+      }
+    },
+    [input, suggestions, historyIndex, commandHistory, executeCommand, onClose],
+  )
+
+  // Auto-scroll to bottom with performance optimization
+  useEffect(() => {
+    if (terminalRef.current) {
+      const scrollToBottom = () => {
+        terminalRef.current?.scrollTo({
+          top: terminalRef.current.scrollHeight,
+          behavior: "smooth",
+        })
+      }
+
+      requestAnimationFrame(scrollToBottom)
     }
-  }
+  }, [history])
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      setInput(suggestion)
+      setSuggestions([])
+      setShowSuggestions(false)
+      focusInput()
+    },
+    [focusInput],
+  )
+
+  const handleContainerClick = useCallback(() => {
+    focusInput()
+  }, [focusInput])
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <AnimatePresence>
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        className="bg-black/95 border border-green-400/50 rounded-lg w-full max-w-4xl h-[600px] flex flex-col backdrop-blur-md"
-        onClick={(e) => {
-          e.stopPropagation()
-          handleTerminalClick()
-        }}
-        style={{ boxShadow: "0 0 40px rgba(0, 255, 0, 0.3)" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
       >
-        {/* Terminal Header */}
-        <div className="flex items-center justify-between bg-gray-900 px-4 py-3 border-b border-gray-700 rounded-t-lg">
-          <div className="flex items-center">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          className="bg-black/95 border border-green-400/50 rounded-lg w-full max-w-4xl h-[80vh] flex flex-col font-mono backdrop-blur-md"
+          style={{
+            boxShadow: "0 0 30px rgba(0, 255, 0, 0.3)",
+            willChange: "transform, opacity",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Terminal Header */}
+          <div className="flex items-center justify-between p-4 border-b border-green-400/30">
+            <div className="flex items-center space-x-2">
+              <div className="flex space-x-2">
+                <div
+                  className="w-3 h-3 bg-red-500 rounded-full cursor-pointer hover:bg-red-400 transition-colors"
+                  onClick={onClose}
+                ></div>
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div className="ml-4 text-sm text-gray-400">abdullah@portfolio:~</div>
             </div>
-            <div className="ml-4 flex items-center text-gray-400 text-sm">
-              <Terminal className="w-4 h-4 mr-2" />
-              abdullah@portfolio-terminal
-            </div>
+            <div className="text-sm text-gray-400">Interactive Terminal</div>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onClose()
-            }}
-            className="text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+
+          {/* Terminal Content */}
+          <div
+            ref={terminalRef}
+            className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-green-400 scrollbar-track-transparent"
+            onClick={handleContainerClick}
+            style={{ scrollbarWidth: "thin" }}
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Terminal Content */}
-        <div className="flex-1 p-6 overflow-hidden flex flex-col" onClick={handleTerminalClick}>
-          {/* Command History */}
-          <div className="flex-1 overflow-y-auto mb-4 space-y-1 text-sm font-mono">
-            {history.map((line, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.02 }}
-                className={
-                  line.startsWith("$")
-                    ? "text-green-400 font-bold"
-                    : line.includes("Loading") || line.includes("Navigating") || line.includes("Closing")
-                      ? "text-cyan-400"
-                      : line.includes("Error") || line.includes("not found")
-                        ? "text-red-400"
-                        : "text-gray-300"
-                }
-              >
-                {line}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Command Input */}
-          <div className="border-t border-gray-700 pt-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="text-green-400 font-mono font-bold">$</span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                onFocus={() => {
-                  // Ensure cursor is visible when focused
-                  if (inputRef.current) {
-                    inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length)
-                  }
-                }}
-                className="flex-1 bg-transparent text-white outline-none font-mono font-semibold caret-green-400"
-                placeholder="Type a command..."
-                autoFocus
-                autoComplete="off"
-                spellCheck="false"
-                style={{ caretColor: "#00ff00" }}
-              />
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.5, repeat: Number.POSITIVE_INFINITY }}
-                className="text-green-400 font-mono font-bold"
-              >
-                |
-              </motion.span>
+            {/* Welcome Message */}
+            <div className="mb-4 text-green-400">
+              <div className="text-lg font-bold mb-2">Welcome to Abdullah's Interactive Terminal! 🚀</div>
+              <div className="text-sm text-gray-300 mb-2">
+                Type 'help' to see available commands or start exploring!
+              </div>
             </div>
 
-            {/* Command Suggestions */}
-            <div className="flex flex-wrap gap-2">
-              {suggestions.map((suggestion, index) => (
-                <motion.button
-                  key={suggestion}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    executeCommand(suggestion)
-                  }}
-                  className="bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-green-400 px-3 py-1 rounded text-sm text-gray-300 hover:text-green-400 transition-colors cursor-pointer font-mono"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  {suggestion}
-                </motion.button>
+            {/* Command History */}
+            <div className="space-y-3">
+              {history.map((item, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="text-green-400">
+                    <span className="text-cyan-400">abdullah@portfolio:~$</span> {item.command}
+                  </div>
+                  {item.output && (
+                    <div
+                      className={`ml-4 ${
+                        item.type === "error"
+                          ? "text-red-400"
+                          : item.type === "success"
+                            ? "text-white"
+                            : "text-gray-300"
+                      }`}
+                    >
+                      {item.output}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
+
+            {/* Current Input Line */}
+            {!isClosingTerminal && (
+              <div className="flex items-center mt-4">
+                <span className="text-cyan-400 mr-2">abdullah@portfolio:~$</span>
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    onClick={focusInput}
+                    className="bg-transparent text-white outline-none w-full caret-green-400"
+                    style={{ caretColor: "#00ff00" }}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+
+                  {/* Command Suggestions */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 mt-1 bg-black/90 border border-green-400/30 rounded-md py-1 z-10 min-w-[200px]">
+                      {suggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="px-3 py-1 text-green-400 hover:bg-green-400/20 cursor-pointer text-sm transition-colors"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+
+          {/* Terminal Footer */}
+          <div className="p-2 border-t border-green-400/30 text-xs text-gray-400 text-center">
+            Press Tab for autocomplete • ↑↓ for history • ESC to close
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </AnimatePresence>
   )
 }
