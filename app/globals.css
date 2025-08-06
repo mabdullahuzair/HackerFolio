@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -122,22 +123,117 @@
   }
 }
 
+@layer components {
+  /* Custom component styles */
+  .terminal-glow {
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
+  }
+
+  .container-glow {
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.2), inset 0 0 20px rgba(0, 255, 0, 0.05);
+  }
+
+  .enhanced-glow {
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+
+  .neon-glow {
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+  }
+
+  .enhanced-text-shadow {
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  .circuit-bg {
+    background-image: linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+      linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .perspective-1000 {
+    perspective: 300px !important;
+  }
+
+  .carousel-3d {
+    transform-style: preserve-3d;
+  }
+
+  .carousel-card {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .glitch {
+    animation: glitch 1s linear infinite;
+  }
+
+  .matrix-char {
+    animation: matrix 3s linear infinite;
+  }
+
+  .cursor-blink {
+    animation: blink 1s infinite;
+  }
+
+  .hologram {
+    background: linear-gradient(-45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
+    background-size: 400% 400%;
+    animation: hologram 4s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .circuit-pattern {
+    animation: circuit-flow 10s linear infinite;
+  }
+
+  .wire-pulse {
+    animation: wire-pulse 2s ease-in-out infinite;
+  }
+
+  /* Scrollbar utilities */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thumb-green-400 {
+    scrollbar-color: #4ade80 transparent;
+  }
+
+  .scrollbar-thumb-purple-400 {
+    scrollbar-color: #a855f7 transparent;
+  }
+
+  .scrollbar-track-transparent {
+    scrollbar-color: transparent transparent;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   overflow-x: hidden;
-}
-
-/* 3D Perspective for carousel */
-.perspective-1000 {
-  perspective: 300px !important;
-}
-
-/* Enhanced text shadows for better visibility */
-.enhanced-text-shadow {
-  text-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.9);
 }
 
 /* Custom scrollbar */
@@ -174,7 +270,7 @@ input[type="text"]:focus {
   color: white;
 }
 
-/* Glitch effect */
+/* Keyframe animations */
 @keyframes glitch {
   0% {
     text-shadow: 0.05em 0 0 #00ffff, -0.03em -0.04em 0 #ff00ff, 0.025em 0.04em 0 #ffff00;
@@ -199,11 +295,6 @@ input[type="text"]:focus {
   }
 }
 
-.glitch {
-  animation: glitch 1s linear infinite;
-}
-
-/* Matrix rain effect */
 @keyframes matrix {
   0% {
     transform: translateY(-100vh);
@@ -215,16 +306,6 @@ input[type="text"]:focus {
   }
 }
 
-.matrix-char {
-  animation: matrix 3s linear infinite;
-}
-
-/* Neon glow */
-.neon-glow {
-  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
-}
-
-/* Terminal cursor blink */
 @keyframes blink {
   0%,
   50% {
@@ -236,11 +317,6 @@ input[type="text"]:focus {
   }
 }
 
-.cursor-blink {
-  animation: blink 1s infinite;
-}
-
-/* Holographic effect */
 @keyframes hologram {
   0% {
     background-position: 0% 50%;
@@ -253,23 +329,6 @@ input[type="text"]:focus {
   }
 }
 
-.hologram {
-  background: linear-gradient(-45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
-  background-size: 400% 400%;
-  animation: hologram 4s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Circuit board pattern */
-.circuit-bg {
-  background-image: linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-    linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Scan lines */
 @keyframes scan {
   0% {
     transform: translateY(-100%);
@@ -279,6 +338,29 @@ input[type="text"]:focus {
   }
 }
 
+@keyframes circuit-flow {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes wire-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Scan lines */
 .scan-lines::before {
   content: "";
   position: absolute;
@@ -302,38 +384,6 @@ a {
 * {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-}
-
-/* Circuit pattern animation */
-.circuit-pattern {
-  animation: circuit-flow 10s linear infinite;
-}
-
-@keyframes circuit-flow {
-  0% {
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0.1;
-  }
-}
-
-/* Enhanced glow effects */
-.enhanced-glow {
-  filter: drop-shadow(0 0 10px currentColor);
-}
-
-/* 3D Carousel specific styles */
-.carousel-3d {
-  transform-style: preserve-3d;
-}
-
-.carousel-card {
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
 }
 
 /* Particle optimization */
@@ -400,34 +450,6 @@ canvas {
   }
 }
 
-/* Terminal enhancements */
-.terminal-glow {
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3), inset 0 0 10px rgba(0, 255, 0, 0.1);
-}
-
-/* Wire animation */
-@keyframes wire-pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.wire-pulse {
-  animation: wire-pulse 2s ease-in-out infinite;
-}
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* Better backdrop blur support */
 @supports (backdrop-filter: blur(10px)) {
   .backdrop-blur-md {
@@ -447,7 +469,21 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Enhanced container shadows */
-.container-glow {
-  box-shadow: 0 0 30px rgba(0, 255, 0, 0.2), inset 0 0 20px rgba(0, 255, 0, 0.05);
+/* Webkit scrollbar styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thumb-green-400::-webkit-scrollbar-thumb {
+  background-color: #4ade80;
+  border-radius: 3px;
+}
+
+.scrollbar-thumb-purple-400::-webkit-scrollbar-thumb {
+  background-color: #a855f7;
+  border-radius: 3px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
 }
