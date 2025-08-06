@@ -1,118 +1,110 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
+import { motion } from "framer-motion"
 
 export default function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const trailRef = useRef<HTMLDivElement[]>([])
-  const [isVisible, setIsVisible] = useState(false)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isHovering, setIsHovering] = useState(false)
   const [isClicking, setIsClicking] = useState(false)
-  const mousePos = useRef({ x: 0, y: 0 })
-  const animationRef = useRef<number>()
+  const requestRef = useRef<number>()
+  const mouseRef = useRef({ x: 0, y: 0 })
+
+  const updateMousePosition = useCallback((e: MouseEvent) => {
+    mouseRef.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  const animatePosition = useCallback(() => {
+    setMousePosition(mouseRef.current)
+    requestRef.current = requestAnimationFrame(animatePosition)
+  }, [])
 
   useEffect(() => {
-    // Check if device supports hover (desktop)
-    const hasHover = window.matchMedia("(hover: hover)").matches
-    if (!hasHover) return
-
-    setIsVisible(true)
-
-    // Optimized mouse tracking with requestAnimationFrame
-    let mouseUpdateScheduled = false
-    const handleMouseMove = (e: MouseEvent) => {
-      mousePos.current = { x: e.clientX, y: e.clientY }
-
-      if (!mouseUpdateScheduled) {
-        mouseUpdateScheduled = true
-        requestAnimationFrame(() => {
-          updateCursorPosition()
-          mouseUpdateScheduled = false
-        })
-      }
-    }
-
-    const updateCursorPosition = () => {
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${mousePos.current.x}px, ${mousePos.current.y}px, 0)`
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (
+        target.tagName === "A" ||
+        target.tagName === "BUTTON" ||
+        target.classList.contains("cursor-pointer") ||
+        target.closest("button") ||
+        target.closest("a")
+      ) {
+        setIsHovering(true)
+      } else {
+        setIsHovering(false)
       }
     }
 
     const handleMouseDown = () => setIsClicking(true)
     const handleMouseUp = () => setIsClicking(false)
 
-    const handleMouseEnter = () => setIsVisible(true)
-    const handleMouseLeave = () => setIsVisible(false)
+    // Use passive listeners for better performance
+    window.addEventListener("mousemove", updateMousePosition, { passive: true })
+    window.addEventListener("mouseover", handleMouseOver, { passive: true })
+    window.addEventListener("mousedown", handleMouseDown, { passive: true })
+    window.addEventListener("mouseup", handleMouseUp, { passive: true })
 
-    // Event listeners with passive option for better performance
-    document.addEventListener("mousemove", handleMouseMove, { passive: true })
-    document.addEventListener("mousedown", handleMouseDown, { passive: true })
-    document.addEventListener("mouseup", handleMouseUp, { passive: true })
-    document.addEventListener("mouseenter", handleMouseEnter, { passive: true })
-    document.addEventListener("mouseleave", handleMouseLeave, { passive: true })
-
-    // Trail animation with optimized rendering
-    const animateTrail = () => {
-      trailRef.current.forEach((trail, index) => {
-        if (trail) {
-          const delay = index * 0.05
-          const targetX = mousePos.current.x - delay * 20
-          const targetY = mousePos.current.y - delay * 20
-
-          trail.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`
-          trail.style.opacity = `${Math.max(0, 0.8 - index * 0.15)}`
-        }
-      })
-
-      animationRef.current = requestAnimationFrame(animateTrail)
-    }
-
-    animateTrail()
+    requestRef.current = requestAnimationFrame(animatePosition)
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mousedown", handleMouseDown)
-      document.removeEventListener("mouseup", handleMouseUp)
-      document.removeEventListener("mouseenter", handleMouseEnter)
-      document.removeEventListener("mouseleave", handleMouseLeave)
-
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
+      window.removeEventListener("mousemove", updateMousePosition)
+      window.removeEventListener("mouseover", handleMouseOver)
+      window.removeEventListener("mousedown", handleMouseDown)
+      window.removeEventListener("mouseup", handleMouseUp)
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current)
       }
     }
+  }, [updateMousePosition, animatePosition])
+
+  // Hide on mobile devices
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
   }, [])
 
-  if (!isVisible) return null
+  if (isMobile) return null
 
   return (
     <>
-      {/* Main cursor */}
-      <div
-        ref={cursorRef}
-        className={`fixed top-0 left-0 w-6 h-6 pointer-events-none z-[60] transition-transform duration-100 ease-out ${
-          isClicking ? "scale-75" : "scale-100"
-        }`}
+      {/* Main cursor dot */}
+      <motion.div
+        className="fixed top-0 left-0 w-3 h-3 bg-green-400 rounded-full pointer-events-none z-[60] mix-blend-difference"
         style={{
-          transform: "translate3d(0, 0, 0)",
-          willChange: "transform",
+          x: mousePosition.x - 6,
+          y: mousePosition.y - 6,
         }}
-      >
-        <div className="w-full h-full rounded-full border-2 border-green-400 bg-green-400/20 shadow-lg shadow-green-400/50" />
-      </div>
+        animate={{
+          scale: isClicking ? 0.5 : isHovering ? 1.5 : 1,
+          backgroundColor: isClicking ? "#ff00ff" : isHovering ? "#00ffff" : "#00ff00",
+        }}
+        transition={{ type: "spring", stiffness: 800, damping: 30 }}
+      />
 
-      {/* Trail particles */}
-      {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          ref={(el) => {
-            if (el) trailRef.current[i] = el
-          }}
-          className="fixed top-0 left-0 w-2 h-2 pointer-events-none z-[59] rounded-full bg-green-400/60"
-          style={{
-            transform: "translate3d(0, 0, 0)",
-            willChange: "transform, opacity",
-          }}
-        />
-      ))}
+      {/* Outer ring */}
+      <motion.div
+        className="fixed top-0 left-0 w-8 h-8 border border-green-400 rounded-full pointer-events-none z-[60]"
+        style={{
+          x: mousePosition.x - 16,
+          y: mousePosition.y - 16,
+        }}
+        animate={{
+          scale: isClicking ? 0.8 : isHovering ? 2 : 1,
+          borderColor: isClicking ? "#ff00ff" : isHovering ? "#00ffff" : "#00ff00",
+          opacity: isHovering ? 0.8 : 0.6,
+        }}
+        transition={{ type: "spring", stiffness: 600, damping: 25 }}
+      />
+
+      {/* Trailing particles */}
+      <motion.div
+        className="fixed top-0 left-0 w-1 h-1 bg-cyan-400 rounded-full pointer-events-none z-[59] opacity-60"
+        style={{
+          x: mousePosition.x - 2,
+          y: mousePosition.y - 2,
+        }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      />
     </>
   )
 }
