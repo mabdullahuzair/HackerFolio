@@ -8,9 +8,8 @@ It is structured for easy customization, scalability, and performance optimizati
 ## Deployment
 
 The project is live at:
+**[Live Demo](https://abdullahcodes.vercel.app)**  
 
-**[Live Demo](abdullahcodes.vercel.app)**  
-*(Replace `#` with your actual deployment link)*
 
 ## Build and Customize
 
