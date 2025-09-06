@@ -1,30 +1,28 @@
-# Modern landing page
-
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/musaalinoob-4773s-projects/v0-modern-landing-page)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/iMdNed0CJJf)
+# Modern Landing Page
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+This repository contains the source code for a Portfolio Website.  
+It is structured for easy customization, scalability, and performance optimization.
 
 ## Deployment
 
-Your project is live at:
+The project is live at:
 
-**[https://vercel.com/musaalinoob-4773s-projects/v0-modern-landing-page](https://vercel.com/musaalinoob-4773s-projects/v0-modern-landing-page)**
+**[Live Demo](abdullahcodes.vercel.app)**  
+*(Replace `#` with your actual deployment link)*
 
-## Build your app
+## Build and Customize
 
-Continue building your app on:
+1. Clone this repository  
+2. Install dependencies using your preferred package manager  
+3. Run the development server  
+4. Make changes and preview them locally  
+5. Deploy using your chosen hosting service  
 
-**[https://v0.dev/chat/projects/iMdNed0CJJf](https://v0.dev/chat/projects/iMdNed0CJJf)**
+## Features
 
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- Clean and modern design  
+- Responsive layout for all devices  
+- Easy to customize sections and styles  
+- Optimized for performance  
